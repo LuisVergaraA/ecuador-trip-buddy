@@ -53,34 +53,96 @@ function SmartTripApp() {
 
   return (
     <div className="min-h-screen bg-gradient-sky">
-      <div className="mx-auto w-full max-w-[440px] min-h-screen bg-background shadow-float relative overflow-hidden">
-        <TopBar profile={current} onChangeProfile={() => setProfile(null)} />
+      <div className="lg:flex lg:min-h-screen">
+        {/* Desktop sidebar */}
+        <SideNav profile={current} onChangeProfile={() => setProfile(null)} />
 
-        <main className="pb-32">
-          {!current ? (
-            <ProfileSelector onPick={setProfile} />
-          ) : (
-            <Dashboard profile={current} />
-          )}
-        </main>
+        {/* App container: phone-sized on mobile, full panel on desktop */}
+        <div className="relative mx-auto w-full max-w-[440px] min-h-screen bg-background shadow-float overflow-hidden lg:mx-0 lg:max-w-none lg:flex-1 lg:shadow-none lg:bg-transparent">
+          <TopBar profile={current} onChangeProfile={() => setProfile(null)} />
 
-        {current && <BottomNav />}
+          <main className="pb-32 lg:pb-12 lg:px-6 xl:px-10 lg:max-w-6xl lg:mx-auto">
+            {!current ? (
+              <ProfileSelector onPick={setProfile} />
+            ) : (
+              <Dashboard profile={current} />
+            )}
+          </main>
+
+          {current && <BottomNav />}
+        </div>
+
         <AssistantFab />
       </div>
     </div>
   );
 }
 
-/* ---------- Top bar ---------- */
+/* ---------- Desktop sidebar ---------- */
+
+function SideNav({ profile, onChangeProfile }: { profile: Profile | null; onChangeProfile: () => void }) {
+  const items = [
+    { icon: Home, label: "Inicio", active: true },
+    { icon: Compass, label: "Explorar" },
+    { icon: CalendarDays, label: "Mis viajes" },
+    { icon: Hotel, label: "Reservas" },
+    { icon: MessageCircle, label: "Mensajes" },
+    { icon: Settings, label: "Ajustes" },
+  ];
+  return (
+    <aside className="hidden lg:flex lg:w-72 xl:w-80 lg:flex-col lg:border-r lg:border-border lg:bg-background lg:px-6 lg:py-7 lg:sticky lg:top-0 lg:h-screen">
+      <button onClick={onChangeProfile} className="flex items-center gap-3 text-left">
+        <img src={logo} alt="SmartTrip" className="h-12 w-12 rounded-xl object-contain bg-card p-1 ring-1 ring-border" />
+        <div className="min-w-0">
+          <p className="font-display text-lg font-extrabold tracking-tight">SmartTrip</p>
+          <p className="text-[11px] text-muted-foreground">Ecuador inteligente</p>
+        </div>
+      </button>
+
+      <nav className="mt-8 flex-1 space-y-1">
+        {items.map(it => (
+          <button
+            key={it.label}
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${it.active ? "bg-primary/10 text-primary" : "text-foreground/70 hover:bg-muted"}`}
+          >
+            <it.icon className="h-5 w-5" /> {it.label}
+          </button>
+        ))}
+      </nav>
+
+      {profile ? (
+        <div className="mt-4 rounded-2xl border border-border bg-card p-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Perfil activo</p>
+          <div className="mt-2 flex items-center gap-3">
+            <span className={`grid h-10 w-10 place-items-center rounded-xl ${accentBg(profile.accent)}`}>
+              <profile.icon className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold">{profile.name}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{profile.role}</p>
+            </div>
+          </div>
+          <button onClick={onChangeProfile} className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-primary">
+            Cambiar perfil <LogOut className="h-3 w-3" />
+          </button>
+        </div>
+      ) : (
+        <p className="mt-4 text-[11px] text-muted-foreground">Elige un perfil para personalizar tu experiencia.</p>
+      )}
+    </aside>
+  );
+}
+
+/* ---------- Top bar (mobile + desktop header) ---------- */
 
 function TopBar({ profile, onChangeProfile }: { profile: Profile | null; onChangeProfile: () => void }) {
   return (
-    <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 bg-background/85 backdrop-blur border-b border-border px-4 py-3">
+    <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 bg-background/85 backdrop-blur border-b border-border px-4 py-3 lg:px-8 lg:py-4 lg:bg-background/70">
       <button
         onClick={onChangeProfile}
-        className="flex min-w-0 items-center gap-2 text-left"
+        className="flex min-w-0 items-center gap-2 text-left lg:hidden"
       >
-        <img src={logo} alt="SmartTrip" width={36} height={36} className="h-9 w-9 shrink-0" />
+        <img src={logo} alt="SmartTrip" width={36} height={36} className="h-9 w-9 shrink-0 object-contain" />
         <div className="min-w-0">
           <p className="font-display text-base font-bold leading-tight tracking-tight">SmartTrip</p>
           <p className="truncate text-[11px] text-muted-foreground">
@@ -88,12 +150,29 @@ function TopBar({ profile, onChangeProfile }: { profile: Profile | null; onChang
           </p>
         </div>
       </button>
+
+      {/* Desktop search */}
+      <div className="hidden lg:flex min-w-0 items-center gap-2 max-w-xl">
+        <div className="relative w-full">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            placeholder="Buscar destinos, hoteles, vuelos en Ecuador…"
+            className="w-full rounded-full border border-border bg-card pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+          />
+        </div>
+      </div>
+
       <div className="flex shrink-0 items-center gap-1">
-        <IconButton><Search className="h-5 w-5" /></IconButton>
+        <IconButton><Search className="h-5 w-5 lg:hidden" /></IconButton>
         <IconButton>
           <Bell className="h-5 w-5" />
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
         </IconButton>
+        {profile && (
+          <span className="hidden lg:grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-primary-foreground font-bold text-sm">
+            {profile.name[0]}
+          </span>
+        )}
       </div>
     </header>
   );
