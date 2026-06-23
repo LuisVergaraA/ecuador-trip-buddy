@@ -694,7 +694,7 @@ function BottomNav() {
     { icon: GraduationCap, label: "Perfil" },
   ];
   return (
-    <nav className="absolute bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 backdrop-blur">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 backdrop-blur mx-auto max-w-[440px] lg:hidden">
       <ul className="grid grid-cols-4">
         {items.map(it => (
           <li key={it.label}>
