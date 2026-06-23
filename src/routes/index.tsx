@@ -190,37 +190,40 @@ function IconButton({ children }: { children: React.ReactNode }) {
 
 function ProfileSelector({ onPick }: { onPick: (id: ProfileId) => void }) {
   return (
-    <section className="px-5 pt-6">
-      <div className="rounded-3xl bg-gradient-brand p-6 text-primary-foreground shadow-soft">
+    <section className="px-5 pt-6 lg:px-0 lg:pt-10">
+      <div className="rounded-3xl bg-gradient-brand p-6 text-primary-foreground shadow-soft lg:p-10">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest opacity-80">
           <Sparkles className="h-3.5 w-3.5" /> Demo interactiva
         </div>
-        <h1 className="mt-2 font-display text-2xl font-extrabold leading-tight">
+        <h1 className="mt-2 font-display text-2xl font-extrabold leading-tight lg:text-4xl">
           ¿Quién planifica el viaje hoy?
         </h1>
-        <p className="mt-2 text-sm/relaxed opacity-90">
-          Elige un perfil y mira cómo SmartTrip adapta destinos, presupuesto e itinerarios.
+        <p className="mt-2 text-sm/relaxed opacity-90 lg:text-base lg:max-w-2xl">
+          Elige un perfil y mira cómo SmartTrip adapta destinos, presupuesto e itinerarios con IA.
         </p>
       </div>
 
-      <ul className="mt-5 space-y-3">
+      <ul className="mt-5 space-y-3 lg:mt-8 lg:grid lg:grid-cols-3 lg:gap-5 lg:space-y-0">
         {PROFILES.map(p => (
           <li key={p.id}>
             <button
               onClick={() => onPick(p.id)}
-              className="group grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-border bg-card p-4 text-left transition hover:border-primary/40 hover:shadow-soft"
+              className="group grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-border bg-card p-4 text-left transition hover:border-primary/40 hover:shadow-soft lg:flex lg:flex-col lg:items-start lg:gap-3 lg:p-6 lg:h-full"
             >
-              <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${accentBg(p.accent)}`}>
-                <p.icon className="h-6 w-6" />
+              <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${accentBg(p.accent)} lg:h-14 lg:w-14`}>
+                <p.icon className="h-6 w-6 lg:h-7 lg:w-7" />
               </span>
-              <span className="min-w-0">
-                <span className="block font-display text-base font-bold">{p.name} · <span className="text-muted-foreground font-medium">{p.role}</span></span>
-                <span className="mt-0.5 block truncate text-sm text-muted-foreground">{p.tagline}</span>
+              <span className="min-w-0 lg:w-full">
+                <span className="block font-display text-base font-bold lg:text-xl">{p.name} · <span className="text-muted-foreground font-medium">{p.role}</span></span>
+                <span className="mt-0.5 block truncate text-sm text-muted-foreground lg:whitespace-normal">{p.tagline}</span>
                 <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/70">
                   <Wallet className="h-3 w-3" /> {p.budget}
                 </span>
               </span>
-              <ChevronRight className="h-5 w-5 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
+              <ChevronRight className="h-5 w-5 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary lg:hidden" />
+              <span className="hidden lg:inline-flex items-center gap-1 text-xs font-bold text-primary">
+                Entrar al panel <ArrowRight className="h-3.5 w-3.5" />
+              </span>
             </button>
           </li>
         ))}
