@@ -4,16 +4,18 @@ import {
   Sparkles, Search, Bell, MessageCircle, Star, MapPin, Wallet, Users,
   Briefcase, Heart, GraduationCap, Plane, Hotel, UtensilsCrossed,
   Compass, Clock, Shield, Baby, Building2, Tag, ChevronRight, Zap,
-  Car, Bus, Mountain, Waves, ArrowRight, Quote,
+  Car, Bus, Mountain, Waves, ArrowRight, Quote, Home, CalendarDays, Settings, LogOut,
 } from "lucide-react";
 
-import logo from "@/assets/logo.png";
+import logoAsset from "@/assets/smarttrip-logo.png.asset.json";
 import quilotoa from "@/assets/quilotoa.jpg";
 import montanita from "@/assets/montanita.jpg";
 import hotelExec from "@/assets/hotel-exec.jpg";
 import banos from "@/assets/banos.jpg";
 import galapagos from "@/assets/galapagos.jpg";
 import quito from "@/assets/quito.jpg";
+
+const logo = logoAsset.url;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -51,34 +53,96 @@ function SmartTripApp() {
 
   return (
     <div className="min-h-screen bg-gradient-sky">
-      <div className="mx-auto w-full max-w-[440px] min-h-screen bg-background shadow-float relative overflow-hidden">
-        <TopBar profile={current} onChangeProfile={() => setProfile(null)} />
+      <div className="lg:flex lg:min-h-screen">
+        {/* Desktop sidebar */}
+        <SideNav profile={current} onChangeProfile={() => setProfile(null)} />
 
-        <main className="pb-32">
-          {!current ? (
-            <ProfileSelector onPick={setProfile} />
-          ) : (
-            <Dashboard profile={current} />
-          )}
-        </main>
+        {/* App container: phone-sized on mobile, full panel on desktop */}
+        <div className="relative mx-auto w-full max-w-[440px] min-h-screen bg-background shadow-float overflow-hidden lg:mx-0 lg:max-w-none lg:flex-1 lg:shadow-none lg:bg-transparent">
+          <TopBar profile={current} onChangeProfile={() => setProfile(null)} />
 
-        {current && <BottomNav />}
+          <main className="pb-32 lg:pb-12 lg:px-6 xl:px-10 lg:max-w-6xl lg:mx-auto">
+            {!current ? (
+              <ProfileSelector onPick={setProfile} />
+            ) : (
+              <Dashboard profile={current} />
+            )}
+          </main>
+
+          {current && <BottomNav />}
+        </div>
+
         <AssistantFab />
       </div>
     </div>
   );
 }
 
-/* ---------- Top bar ---------- */
+/* ---------- Desktop sidebar ---------- */
+
+function SideNav({ profile, onChangeProfile }: { profile: Profile | null; onChangeProfile: () => void }) {
+  const items = [
+    { icon: Home, label: "Inicio", active: true },
+    { icon: Compass, label: "Explorar" },
+    { icon: CalendarDays, label: "Mis viajes" },
+    { icon: Hotel, label: "Reservas" },
+    { icon: MessageCircle, label: "Mensajes" },
+    { icon: Settings, label: "Ajustes" },
+  ];
+  return (
+    <aside className="hidden lg:flex lg:w-72 xl:w-80 lg:flex-col lg:border-r lg:border-border lg:bg-background lg:px-6 lg:py-7 lg:sticky lg:top-0 lg:h-screen">
+      <button onClick={onChangeProfile} className="flex items-center gap-3 text-left">
+        <img src={logo} alt="SmartTrip" className="h-12 w-12 rounded-xl object-contain bg-card p-1 ring-1 ring-border" />
+        <div className="min-w-0">
+          <p className="font-display text-lg font-extrabold tracking-tight">SmartTrip</p>
+          <p className="text-[11px] text-muted-foreground">Ecuador inteligente</p>
+        </div>
+      </button>
+
+      <nav className="mt-8 flex-1 space-y-1">
+        {items.map(it => (
+          <button
+            key={it.label}
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${it.active ? "bg-primary/10 text-primary" : "text-foreground/70 hover:bg-muted"}`}
+          >
+            <it.icon className="h-5 w-5" /> {it.label}
+          </button>
+        ))}
+      </nav>
+
+      {profile ? (
+        <div className="mt-4 rounded-2xl border border-border bg-card p-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Perfil activo</p>
+          <div className="mt-2 flex items-center gap-3">
+            <span className={`grid h-10 w-10 place-items-center rounded-xl ${accentBg(profile.accent)}`}>
+              <profile.icon className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold">{profile.name}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{profile.role}</p>
+            </div>
+          </div>
+          <button onClick={onChangeProfile} className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-primary">
+            Cambiar perfil <LogOut className="h-3 w-3" />
+          </button>
+        </div>
+      ) : (
+        <p className="mt-4 text-[11px] text-muted-foreground">Elige un perfil para personalizar tu experiencia.</p>
+      )}
+    </aside>
+  );
+}
+
+/* ---------- Top bar (mobile + desktop header) ---------- */
 
 function TopBar({ profile, onChangeProfile }: { profile: Profile | null; onChangeProfile: () => void }) {
   return (
-    <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 bg-background/85 backdrop-blur border-b border-border px-4 py-3">
+    <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 bg-background/85 backdrop-blur border-b border-border px-4 py-3 lg:px-8 lg:py-4 lg:bg-background/70">
       <button
         onClick={onChangeProfile}
-        className="flex min-w-0 items-center gap-2 text-left"
+        className="flex min-w-0 items-center gap-2 text-left lg:hidden"
       >
-        <img src={logo} alt="SmartTrip" width={36} height={36} className="h-9 w-9 shrink-0" />
+        <img src={logo} alt="SmartTrip" width={36} height={36} className="h-9 w-9 shrink-0 object-contain" />
         <div className="min-w-0">
           <p className="font-display text-base font-bold leading-tight tracking-tight">SmartTrip</p>
           <p className="truncate text-[11px] text-muted-foreground">
@@ -86,12 +150,29 @@ function TopBar({ profile, onChangeProfile }: { profile: Profile | null; onChang
           </p>
         </div>
       </button>
+
+      {/* Desktop search */}
+      <div className="hidden lg:flex min-w-0 items-center gap-2 max-w-xl">
+        <div className="relative w-full">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            placeholder="Buscar destinos, hoteles, vuelos en Ecuador…"
+            className="w-full rounded-full border border-border bg-card pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+          />
+        </div>
+      </div>
+
       <div className="flex shrink-0 items-center gap-1">
-        <IconButton><Search className="h-5 w-5" /></IconButton>
+        <IconButton><Search className="h-5 w-5 lg:hidden" /></IconButton>
         <IconButton>
           <Bell className="h-5 w-5" />
           <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
         </IconButton>
+        {profile && (
+          <span className="hidden lg:grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-primary-foreground font-bold text-sm">
+            {profile.name[0]}
+          </span>
+        )}
       </div>
     </header>
   );
@@ -109,37 +190,40 @@ function IconButton({ children }: { children: React.ReactNode }) {
 
 function ProfileSelector({ onPick }: { onPick: (id: ProfileId) => void }) {
   return (
-    <section className="px-5 pt-6">
-      <div className="rounded-3xl bg-gradient-brand p-6 text-primary-foreground shadow-soft">
+    <section className="px-5 pt-6 lg:px-0 lg:pt-10">
+      <div className="rounded-3xl bg-gradient-brand p-6 text-primary-foreground shadow-soft lg:p-10">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest opacity-80">
           <Sparkles className="h-3.5 w-3.5" /> Demo interactiva
         </div>
-        <h1 className="mt-2 font-display text-2xl font-extrabold leading-tight">
+        <h1 className="mt-2 font-display text-2xl font-extrabold leading-tight lg:text-4xl">
           ¿Quién planifica el viaje hoy?
         </h1>
-        <p className="mt-2 text-sm/relaxed opacity-90">
-          Elige un perfil y mira cómo SmartTrip adapta destinos, presupuesto e itinerarios.
+        <p className="mt-2 text-sm/relaxed opacity-90 lg:text-base lg:max-w-2xl">
+          Elige un perfil y mira cómo SmartTrip adapta destinos, presupuesto e itinerarios con IA.
         </p>
       </div>
 
-      <ul className="mt-5 space-y-3">
+      <ul className="mt-5 space-y-3 lg:mt-8 lg:grid lg:grid-cols-3 lg:gap-5 lg:space-y-0">
         {PROFILES.map(p => (
           <li key={p.id}>
             <button
               onClick={() => onPick(p.id)}
-              className="group grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-border bg-card p-4 text-left transition hover:border-primary/40 hover:shadow-soft"
+              className="group grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-border bg-card p-4 text-left transition hover:border-primary/40 hover:shadow-soft lg:flex lg:flex-col lg:items-start lg:gap-3 lg:p-6 lg:h-full"
             >
-              <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${accentBg(p.accent)}`}>
-                <p.icon className="h-6 w-6" />
+              <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${accentBg(p.accent)} lg:h-14 lg:w-14`}>
+                <p.icon className="h-6 w-6 lg:h-7 lg:w-7" />
               </span>
-              <span className="min-w-0">
-                <span className="block font-display text-base font-bold">{p.name} · <span className="text-muted-foreground font-medium">{p.role}</span></span>
-                <span className="mt-0.5 block truncate text-sm text-muted-foreground">{p.tagline}</span>
+              <span className="min-w-0 lg:w-full">
+                <span className="block font-display text-base font-bold lg:text-xl">{p.name} · <span className="text-muted-foreground font-medium">{p.role}</span></span>
+                <span className="mt-0.5 block truncate text-sm text-muted-foreground lg:whitespace-normal">{p.tagline}</span>
                 <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/70">
                   <Wallet className="h-3 w-3" /> {p.budget}
                 </span>
               </span>
-              <ChevronRight className="h-5 w-5 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
+              <ChevronRight className="h-5 w-5 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary lg:hidden" />
+              <span className="hidden lg:inline-flex items-center gap-1 text-xs font-bold text-primary">
+                Entrar al panel <ArrowRight className="h-3.5 w-3.5" />
+              </span>
             </button>
           </li>
         ))}
@@ -563,8 +647,8 @@ function AssistantFab() {
   return (
     <>
       {open && (
-        <div className="absolute inset-0 z-40 bg-foreground/30" onClick={() => setOpen(false)}>
-          <div className="absolute bottom-28 right-4 left-4 rounded-3xl bg-card p-4 shadow-float" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-40 bg-foreground/30" onClick={() => setOpen(false)}>
+          <div className="fixed bottom-28 right-4 left-4 max-w-md lg:left-auto lg:right-8 lg:bottom-24 rounded-3xl bg-card p-4 shadow-float" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-2">
               <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-brand text-primary-foreground">
                 <Sparkles className="h-5 w-5" />
@@ -590,7 +674,7 @@ function AssistantFab() {
       )}
       <button
         onClick={() => setOpen(o => !o)}
-        className="absolute bottom-24 right-4 z-50 grid h-14 w-14 place-items-center rounded-full bg-gradient-brand text-primary-foreground shadow-float transition active:scale-95"
+        className="fixed bottom-24 right-4 lg:bottom-8 lg:right-8 z-50 grid h-14 w-14 place-items-center rounded-full bg-gradient-brand text-primary-foreground shadow-float transition active:scale-95"
         aria-label="Asistente virtual"
       >
         <MessageCircle className="h-6 w-6" />
@@ -610,7 +694,7 @@ function BottomNav() {
     { icon: GraduationCap, label: "Perfil" },
   ];
   return (
-    <nav className="absolute bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 backdrop-blur">
+    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 backdrop-blur mx-auto max-w-[440px] lg:hidden">
       <ul className="grid grid-cols-4">
         {items.map(it => (
           <li key={it.label}>
