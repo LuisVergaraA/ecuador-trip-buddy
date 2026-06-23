@@ -674,7 +674,7 @@ function AssistantFab() {
       )}
       <button
         onClick={() => setOpen(o => !o)}
-        className="absolute bottom-24 right-4 z-50 grid h-14 w-14 place-items-center rounded-full bg-gradient-brand text-primary-foreground shadow-float transition active:scale-95"
+        className="fixed bottom-24 right-4 lg:bottom-8 lg:right-8 z-50 grid h-14 w-14 place-items-center rounded-full bg-gradient-brand text-primary-foreground shadow-float transition active:scale-95"
         aria-label="Asistente virtual"
       >
         <MessageCircle className="h-6 w-6" />
