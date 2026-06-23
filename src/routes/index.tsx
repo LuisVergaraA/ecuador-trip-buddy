@@ -647,8 +647,8 @@ function AssistantFab() {
   return (
     <>
       {open && (
-        <div className="absolute inset-0 z-40 bg-foreground/30" onClick={() => setOpen(false)}>
-          <div className="absolute bottom-28 right-4 left-4 rounded-3xl bg-card p-4 shadow-float" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-40 bg-foreground/30" onClick={() => setOpen(false)}>
+          <div className="fixed bottom-28 right-4 left-4 max-w-md lg:left-auto lg:right-8 lg:bottom-24 rounded-3xl bg-card p-4 shadow-float" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-2">
               <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-brand text-primary-foreground">
                 <Sparkles className="h-5 w-5" />
