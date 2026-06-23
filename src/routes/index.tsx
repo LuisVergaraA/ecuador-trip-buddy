@@ -4,16 +4,18 @@ import {
   Sparkles, Search, Bell, MessageCircle, Star, MapPin, Wallet, Users,
   Briefcase, Heart, GraduationCap, Plane, Hotel, UtensilsCrossed,
   Compass, Clock, Shield, Baby, Building2, Tag, ChevronRight, Zap,
-  Car, Bus, Mountain, Waves, ArrowRight, Quote,
+  Car, Bus, Mountain, Waves, ArrowRight, Quote, Home, CalendarDays, Settings, LogOut,
 } from "lucide-react";
 
-import logo from "@/assets/logo.png";
+import logoAsset from "@/assets/smarttrip-logo.png.asset.json";
 import quilotoa from "@/assets/quilotoa.jpg";
 import montanita from "@/assets/montanita.jpg";
 import hotelExec from "@/assets/hotel-exec.jpg";
 import banos from "@/assets/banos.jpg";
 import galapagos from "@/assets/galapagos.jpg";
 import quito from "@/assets/quito.jpg";
+
+const logo = logoAsset.url;
 
 export const Route = createFileRoute("/")({
   head: () => ({
