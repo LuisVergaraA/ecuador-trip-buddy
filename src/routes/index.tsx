@@ -1,31 +1,52 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  Sparkles, Search, Bell, MessageCircle, Star, MapPin, Wallet, Users,
-  Briefcase, Heart, GraduationCap, Plane, Hotel, UtensilsCrossed,
-  Compass, Clock, Shield, Baby, Building2, Tag, ChevronRight, Zap,
-  Car, Bus, Mountain, Waves, ArrowRight, Quote, Home, CalendarDays, Settings, LogOut,
+  Backpack,
+  Bell,
+  Briefcase,
+  Calendar,
+  CalendarDays,
+  Car,
+  ChevronRight,
+  Compass,
+  Heart,
+  Home,
+  Hotel,
+  LogOut,
+  MapPin,
+  MessageCircle,
+  Mic,
+  Plane,
+  Search,
+  Send,
+  Settings,
+  Shield,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Users,
+  Wallet,
+  X,
 } from "lucide-react";
 
-import logoAsset from "@/assets/smarttrip-logo.png.asset.json";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+
+import logo from "@/assets/smarttrip-logo.png";
+import quito from "@/assets/quito.jpg";
+import galapagos from "@/assets/galapagos.jpg";
+import banos from "@/assets/banos.jpg";
 import quilotoa from "@/assets/quilotoa.jpg";
 import montanita from "@/assets/montanita.jpg";
 import hotelExec from "@/assets/hotel-exec.jpg";
-import banos from "@/assets/banos.jpg";
-import galapagos from "@/assets/galapagos.jpg";
-import quito from "@/assets/quito.jpg";
-
-const logo = logoAsset.url;
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "SmartTrip — Tu viaje por Ecuador, personalizado" },
-      { name: "description", content: "Planifica viajes por Ecuador con recomendaciones IA según tu perfil, presupuesto y duración." },
-    ],
-  }),
-  component: SmartTripApp,
+  component: SmartTripHome,
 });
+
+/* ---------------- Profiles ---------------- */
 
 type ProfileId = "mateo" | "andres" | "maria";
 
@@ -34,677 +55,696 @@ type Profile = {
   name: string;
   role: string;
   tagline: string;
-  icon: typeof GraduationCap;
-  accent: "primary" | "nature" | "sun";
   budget: string;
+  accent: string;
+  emoji: string;
 };
 
 const PROFILES: Profile[] = [
-  { id: "mateo",  name: "Mateo",  role: "Estudiante",          tagline: "Aventura con presupuesto justo", icon: GraduationCap, accent: "nature",  budget: "$80 – $200" },
-  { id: "andres", name: "Andrés", role: "Viajero de negocios", tagline: "Eficiencia para viajes cortos",  icon: Briefcase,     accent: "primary", budget: "Corporativo" },
-  { id: "maria",  name: "María",  role: "Planificadora familiar", tagline: "Vacaciones seguras y cómodas", icon: Heart,         accent: "sun",     budget: "$600 – $1500" },
+  {
+    id: "mateo",
+    name: "Mateo",
+    role: "Estudiante mochilero",
+    tagline: "Aventura con presupuesto ajustado",
+    budget: "$120 / 4 días",
+    accent: "from-emerald-500 to-teal-500",
+    emoji: "🎒",
+  },
+  {
+    id: "andres",
+    name: "Andrés",
+    role: "Ejecutivo en viaje de negocios",
+    tagline: "Agenda, transporte y reuniones",
+    budget: "$680 / 3 días",
+    accent: "from-sky-600 to-indigo-600",
+    emoji: "💼",
+  },
+  {
+    id: "maria",
+    name: "María",
+    role: "Planificadora familiar",
+    tagline: "Seguridad y diversión para todos",
+    budget: "$1.450 / 6 días",
+    accent: "from-amber-500 to-rose-500",
+    emoji: "👨‍👩‍👧",
+  },
 ];
 
-/* ---------- Shell ---------- */
+/* ---------------- Destinations per profile ---------------- */
 
-function SmartTripApp() {
-  const [profile, setProfile] = useState<ProfileId | null>(null);
-  const current = PROFILES.find(p => p.id === profile) ?? null;
+type Destination = {
+  title: string;
+  location: string;
+  price: string;
+  tag: string;
+  rating: number;
+  image: string;
+};
+
+const DESTINATIONS: Record<ProfileId, Destination[]> = {
+  mateo: [
+    { title: "Quilotoa Loop", location: "Cotopaxi", price: "$32", tag: "Trekking", rating: 4.9, image: quilotoa },
+    { title: "Montañita Surf", location: "Santa Elena", price: "$45", tag: "Playa & Hostel", rating: 4.7, image: montanita },
+    { title: "Baños de Agua Santa", location: "Tungurahua", price: "$55", tag: "Aventura", rating: 4.8, image: banos },
+  ],
+  andres: [
+    { title: "Quito Centro Financiero", location: "Pichincha", price: "$210/noche", tag: "Business hotel", rating: 4.8, image: hotelExec },
+    { title: "Guayaquil Puerto Santa Ana", location: "Guayas", price: "$180/noche", tag: "Coworking", rating: 4.7, image: quito },
+    { title: "Cuenca Histórica", location: "Azuay", price: "$160/noche", tag: "Reuniones", rating: 4.9, image: banos },
+  ],
+  maria: [
+    { title: "Galápagos Familiar", location: "Insular", price: "$1.150 pp", tag: "All inclusive", rating: 4.9, image: galapagos },
+    { title: "Baños en Familia", location: "Tungurahua", price: "$420 / 4p", tag: "Aventura suave", rating: 4.8, image: banos },
+    { title: "Mindo Bosque Nublado", location: "Pichincha", price: "$380 / 4p", tag: "Naturaleza", rating: 4.7, image: quilotoa },
+  ],
+};
+
+/* ---------------- Comparator data ---------------- */
+
+type CompareItem = {
+  name: string;
+  meta: string;
+  price: string;
+  badge: string;
+  rating: number;
+};
+
+const STAY: Record<ProfileId, CompareItem[]> = {
+  mateo: [
+    { name: "Selina Hostel", meta: "Dormitorio · WiFi", price: "$14", badge: "Más barato", rating: 4.5 },
+    { name: "Community Hostel", meta: "Privado · Desayuno", price: "$28", badge: "Recomendado", rating: 4.7 },
+  ],
+  andres: [
+    { name: "JW Marriott Quito", meta: "Suite ejecutiva", price: "$240", badge: "Premium", rating: 4.9 },
+    { name: "Wyndham Guayaquil", meta: "Business room", price: "$180", badge: "Mejor precio", rating: 4.7 },
+  ],
+  maria: [
+    { name: "Hotel Mashpi Lodge", meta: "Familiar · 4 personas", price: "$520", badge: "Seguro 5★", rating: 4.9 },
+    { name: "Hacienda Cusín", meta: "Cabaña 2 hab.", price: "$310", badge: "Mejor valor", rating: 4.8 },
+  ],
+};
+
+const TRANSPORT: Record<ProfileId, CompareItem[]> = {
+  mateo: [
+    { name: "Bus Cooperativa", meta: "Quito → Latacunga", price: "$3", badge: "Económico", rating: 4.2 },
+    { name: "Van compartida", meta: "Door to door", price: "$12", badge: "Cómodo", rating: 4.6 },
+  ],
+  andres: [
+    { name: "Vuelo LATAM UIO-GYE", meta: "1h · Business", price: "$185", badge: "Rápido", rating: 4.8 },
+    { name: "Cabify Executive", meta: "Aeropuerto → Hotel", price: "$28", badge: "On demand", rating: 4.7 },
+  ],
+  maria: [
+    { name: "SUV privado + chofer", meta: "Hasta 6 pax", price: "$95/día", badge: "Familiar", rating: 4.9 },
+    { name: "Tren Crucero", meta: "Andes escénico", price: "$220 pp", badge: "Experiencia", rating: 4.8 },
+  ],
+};
+
+/* ---------------- Reviews ---------------- */
+
+const REVIEWS: Record<ProfileId, { name: string; text: string; stars: number; role: string }[]> = {
+  mateo: [
+    { name: "Lucía P.", role: "Mochilera", stars: 5, text: "Encontré rutas baratas y compañeros para dividir gastos. Brutal." },
+    { name: "Diego R.", role: "Estudiante", stars: 5, text: "El presupuesto se ajustó solo, no me pasé ni un dólar." },
+  ],
+  andres: [
+    { name: "Carla M.", role: "Gerente comercial", stars: 5, text: "Mi agenda Quito–Guayaquil en una sola pantalla. Reservas en 2 toques." },
+    { name: "Roberto L.", role: "Consultor", stars: 4, text: "Los hoteles sugeridos siempre tienen sala de reuniones." },
+  ],
+  maria: [
+    { name: "Familia Cevallos", role: "Familia de 4", stars: 5, text: "Itinerarios pensados para niños, con paradas y tiempos reales." },
+    { name: "Andrea V.", role: "Mamá viajera", stars: 5, text: "Las alertas de seguridad y el transporte privado me dieron tranquilidad." },
+  ],
+};
+
+/* ---------------- Page ---------------- */
+
+function SmartTripHome() {
+  const [profileId, setProfileId] = useState<ProfileId>("mateo");
+  const [chatOpen, setChatOpen] = useState(false);
+  const profile = useMemo(() => PROFILES.find((p) => p.id === profileId)!, [profileId]);
 
   return (
     <div className="min-h-screen bg-gradient-sky">
-      <div className="lg:flex lg:min-h-screen">
-        {/* Desktop sidebar */}
-        <SideNav profile={current} onChangeProfile={() => setProfile(null)} />
+      <div className="lg:flex">
+        <SideNav profile={profile} active={profileId} onChange={setProfileId} />
 
-        {/* App container: phone-sized on mobile, full panel on desktop */}
-        <div className="relative mx-auto w-full max-w-[440px] min-h-screen bg-background shadow-float overflow-hidden lg:mx-0 lg:max-w-none lg:flex-1 lg:shadow-none lg:bg-transparent">
-          <TopBar profile={current} onChangeProfile={() => setProfile(null)} />
+        <main className="flex-1 pb-24 lg:pb-10">
+          <TopBar profile={profile} />
 
-          <main className="pb-32 lg:pb-12 lg:px-6 xl:px-10 lg:max-w-6xl lg:mx-auto">
-            {!current ? (
-              <ProfileSelector onPick={setProfile} />
-            ) : (
-              <Dashboard profile={current} />
-            )}
-          </main>
-
-          {current && <BottomNav />}
-        </div>
-
-        <AssistantFab />
+          <div className="mx-auto w-full max-w-[460px] space-y-6 px-4 pt-4 lg:max-w-6xl lg:px-8 lg:pt-6">
+            <ProfileSelector active={profileId} onChange={setProfileId} />
+            <Hero profile={profile} />
+            <SmartSuggestions profile={profile} />
+            <DestinationsRail profileId={profileId} />
+            <Itinerary profileId={profileId} />
+            <Comparator profileId={profileId} />
+            <CommunityReviews profileId={profileId} />
+            <Footer />
+          </div>
+        </main>
       </div>
+
+      <BottomNav />
+      <AssistantFab open={chatOpen} setOpen={setChatOpen} profile={profile} />
     </div>
   );
 }
 
-/* ---------- Desktop sidebar ---------- */
+/* ---------------- Side Nav (desktop) ---------------- */
 
-function SideNav({ profile, onChangeProfile }: { profile: Profile | null; onChangeProfile: () => void }) {
+function SideNav({
+  profile,
+  active,
+  onChange,
+}: {
+  profile: Profile;
+  active: ProfileId;
+  onChange: (id: ProfileId) => void;
+}) {
   const items = [
-    { icon: Home, label: "Inicio", active: true },
+    { icon: Home, label: "Inicio" },
     { icon: Compass, label: "Explorar" },
     { icon: CalendarDays, label: "Mis viajes" },
     { icon: Hotel, label: "Reservas" },
     { icon: MessageCircle, label: "Mensajes" },
     { icon: Settings, label: "Ajustes" },
   ];
-  return (
-    <aside className="hidden lg:flex lg:w-72 xl:w-80 lg:flex-col lg:border-r lg:border-border lg:bg-background lg:px-6 lg:py-7 lg:sticky lg:top-0 lg:h-screen">
-      <button onClick={onChangeProfile} className="flex items-center gap-3 text-left">
-        <img src={logo} alt="SmartTrip" className="h-12 w-12 rounded-xl object-contain bg-card p-1 ring-1 ring-border" />
-        <div className="min-w-0">
-          <p className="font-display text-lg font-extrabold tracking-tight">SmartTrip</p>
-          <p className="text-[11px] text-muted-foreground">Ecuador inteligente</p>
-        </div>
-      </button>
 
-      <nav className="mt-8 flex-1 space-y-1">
-        {items.map(it => (
+  return (
+    <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col border-r bg-white/70 backdrop-blur lg:flex">
+      <div className="flex items-center gap-3 px-6 py-6">
+        <img src={logo} alt="SmartTrip" className="h-9 w-9 rounded-xl object-contain" />
+        <div>
+          <p className="font-display text-lg font-bold">SmartTrip</p>
+          <p className="text-xs text-muted-foreground">Ecuador a tu medida</p>
+        </div>
+      </div>
+
+      <nav className="flex-1 space-y-1 px-3">
+        {items.map((it, i) => (
           <button
             key={it.label}
-            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${it.active ? "bg-primary/10 text-primary" : "text-foreground/70 hover:bg-muted"}`}
+            className={cn(
+              "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+              i === 0
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+            )}
           >
-            <it.icon className="h-5 w-5" /> {it.label}
+            <it.icon className="h-4 w-4" />
+            {it.label}
           </button>
         ))}
       </nav>
 
-      {profile ? (
-        <div className="mt-4 rounded-2xl border border-border bg-card p-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Perfil activo</p>
-          <div className="mt-2 flex items-center gap-3">
-            <span className={`grid h-10 w-10 place-items-center rounded-xl ${accentBg(profile.accent)}`}>
-              <profile.icon className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-bold">{profile.name}</p>
-              <p className="truncate text-[11px] text-muted-foreground">{profile.role}</p>
-            </div>
+      <div className="m-3 rounded-2xl border bg-card p-4 shadow-soft">
+        <p className="text-xs text-muted-foreground">Perfil activo</p>
+        <div className="mt-2 flex items-center gap-3">
+          <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br text-lg", profile.accent)}>
+            {profile.emoji}
           </div>
-          <button onClick={onChangeProfile} className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-primary">
-            Cambiar perfil <LogOut className="h-3 w-3" />
-          </button>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">{profile.name}</p>
+            <p className="truncate text-xs text-muted-foreground">{profile.role}</p>
+          </div>
         </div>
-      ) : (
-        <p className="mt-4 text-[11px] text-muted-foreground">Elige un perfil para personalizar tu experiencia.</p>
-      )}
+        <div className="mt-3 flex gap-2">
+          <ProfilePill active={active === "mateo"} onClick={() => onChange("mateo")} emoji="🎒" />
+          <ProfilePill active={active === "andres"} onClick={() => onChange("andres")} emoji="💼" />
+          <ProfilePill active={active === "maria"} onClick={() => onChange("maria")} emoji="👨‍👩‍👧" />
+        </div>
+        <Button variant="ghost" size="sm" className="mt-3 w-full justify-start text-muted-foreground">
+          <LogOut className="h-4 w-4" /> Cerrar sesión
+        </Button>
+      </div>
     </aside>
   );
 }
 
-/* ---------- Top bar (mobile + desktop header) ---------- */
-
-function TopBar({ profile, onChangeProfile }: { profile: Profile | null; onChangeProfile: () => void }) {
+function ProfilePill({ active, onClick, emoji }: { active: boolean; onClick: () => void; emoji: string }) {
   return (
-    <header className="sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 bg-background/85 backdrop-blur border-b border-border px-4 py-3 lg:px-8 lg:py-4 lg:bg-background/70">
-      <button
-        onClick={onChangeProfile}
-        className="flex min-w-0 items-center gap-2 text-left lg:hidden"
-      >
-        <img src={logo} alt="SmartTrip" width={36} height={36} className="h-9 w-9 shrink-0 object-contain" />
-        <div className="min-w-0">
-          <p className="font-display text-base font-bold leading-tight tracking-tight">SmartTrip</p>
-          <p className="truncate text-[11px] text-muted-foreground">
-            {profile ? `Modo: ${profile.name} · ${profile.role}` : "Ecuador, a tu medida"}
-          </p>
-        </div>
-      </button>
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex h-9 flex-1 items-center justify-center rounded-lg border text-base transition",
+        active ? "border-primary bg-primary/10" : "border-transparent bg-muted hover:bg-muted/70",
+      )}
+    >
+      {emoji}
+    </button>
+  );
+}
 
-      {/* Desktop search */}
-      <div className="hidden lg:flex min-w-0 items-center gap-2 max-w-xl">
-        <div className="relative w-full">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            placeholder="Buscar destinos, hoteles, vuelos en Ecuador…"
-            className="w-full rounded-full border border-border bg-card pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
-          />
-        </div>
-      </div>
+/* ---------------- Top Bar ---------------- */
 
-      <div className="flex shrink-0 items-center gap-1">
-        <IconButton><Search className="h-5 w-5 lg:hidden" /></IconButton>
-        <IconButton>
-          <Bell className="h-5 w-5" />
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
-        </IconButton>
-        {profile && (
-          <span className="hidden lg:grid h-10 w-10 place-items-center rounded-full bg-gradient-brand text-primary-foreground font-bold text-sm">
-            {profile.name[0]}
+function TopBar({ profile }: { profile: Profile }) {
+  return (
+    <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 px-4 py-3 backdrop-blur lg:px-8 lg:py-4">
+      <div className="mx-auto flex max-w-6xl items-center gap-3">
+        <img src={logo} alt="SmartTrip" className="h-8 w-8 rounded-lg object-contain lg:hidden" />
+        <div className="hidden flex-1 lg:block">
+          <div className="relative max-w-xl">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="Busca destinos, hoteles, actividades en Ecuador…" className="h-10 rounded-xl pl-9" />
+          </div>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="hidden rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground sm:inline-flex">
+            Modo {profile.name}
           </span>
-        )}
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <Bell className="h-4 w-4" />
+          </Button>
+          <div className={cn("flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br text-lg", profile.accent)}>
+            {profile.emoji}
+          </div>
+        </div>
       </div>
     </header>
   );
 }
 
-function IconButton({ children }: { children: React.ReactNode }) {
-  return (
-    <button className="relative grid h-10 w-10 place-items-center rounded-full text-foreground/80 hover:bg-muted">
-      {children}
-    </button>
-  );
-}
+/* ---------------- Profile Selector ---------------- */
 
-/* ---------- Profile selector ---------- */
-
-function ProfileSelector({ onPick }: { onPick: (id: ProfileId) => void }) {
+function ProfileSelector({ active, onChange }: { active: ProfileId; onChange: (id: ProfileId) => void }) {
   return (
-    <section className="px-5 pt-6 lg:px-0 lg:pt-10">
-      <div className="rounded-3xl bg-gradient-brand p-6 text-primary-foreground shadow-soft lg:p-10">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest opacity-80">
-          <Sparkles className="h-3.5 w-3.5" /> Demo interactiva
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-lg font-bold">¿Cómo viajas hoy?</h2>
+          <p className="text-xs text-muted-foreground">La IA adapta todo según tu perfil</p>
         </div>
-        <h1 className="mt-2 font-display text-2xl font-extrabold leading-tight lg:text-4xl">
-          ¿Quién planifica el viaje hoy?
-        </h1>
-        <p className="mt-2 text-sm/relaxed opacity-90 lg:text-base lg:max-w-2xl">
-          Elige un perfil y mira cómo SmartTrip adapta destinos, presupuesto e itinerarios con IA.
-        </p>
+        <Sparkles className="h-4 w-4 text-primary" />
       </div>
-
-      <ul className="mt-5 space-y-3 lg:mt-8 lg:grid lg:grid-cols-3 lg:gap-5 lg:space-y-0">
-        {PROFILES.map(p => (
-          <li key={p.id}>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {PROFILES.map((p) => {
+          const isActive = p.id === active;
+          return (
             <button
-              onClick={() => onPick(p.id)}
-              className="group grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-border bg-card p-4 text-left transition hover:border-primary/40 hover:shadow-soft lg:flex lg:flex-col lg:items-start lg:gap-3 lg:p-6 lg:h-full"
+              key={p.id}
+              onClick={() => onChange(p.id)}
+              className={cn(
+                "group relative overflow-hidden rounded-2xl border p-4 text-left transition",
+                isActive
+                  ? "border-primary bg-white shadow-soft"
+                  : "border-transparent bg-white/60 hover:bg-white",
+              )}
             >
-              <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${accentBg(p.accent)} lg:h-14 lg:w-14`}>
-                <p.icon className="h-6 w-6 lg:h-7 lg:w-7" />
-              </span>
-              <span className="min-w-0 lg:w-full">
-                <span className="block font-display text-base font-bold lg:text-xl">{p.name} · <span className="text-muted-foreground font-medium">{p.role}</span></span>
-                <span className="mt-0.5 block truncate text-sm text-muted-foreground lg:whitespace-normal">{p.tagline}</span>
-                <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/70">
-                  <Wallet className="h-3 w-3" /> {p.budget}
-                </span>
-              </span>
-              <ChevronRight className="h-5 w-5 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary lg:hidden" />
-              <span className="hidden lg:inline-flex items-center gap-1 text-xs font-bold text-primary">
-                Entrar al panel <ArrowRight className="h-3.5 w-3.5" />
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <p className="mt-6 text-center text-xs text-muted-foreground">
-        Podrás cambiar de perfil tocando el logo en cualquier momento.
-      </p>
-    </section>
-  );
-}
-
-function accentBg(a: Profile["accent"]) {
-  if (a === "primary") return "bg-primary/10 text-primary";
-  if (a === "nature") return "bg-nature/15 text-nature";
-  return "bg-sun/25 text-sun-foreground";
-}
-
-/* ---------- Dashboard ---------- */
-
-function Dashboard({ profile }: { profile: Profile }) {
-  return (
-    <div className="space-y-7 pt-4">
-      <Greeting profile={profile} />
-      {profile.id === "mateo"  && <MateoView />}
-      {profile.id === "andres" && <AndresView />}
-      {profile.id === "maria"  && <MariaView />}
-      <Compare profile={profile} />
-      <Reviews profile={profile} />
-      <div className="px-5 pb-2 text-center text-[11px] text-muted-foreground">
-        Recomendaciones generadas por IA · SmartTrip Ecuador
-      </div>
-    </div>
-  );
-}
-
-function Greeting({ profile }: { profile: Profile }) {
-  const hi = profile.id === "andres" ? "Buen día" : "¡Hola";
-  return (
-    <section className="px-5">
-      <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-        Panel para {profile.role.toLowerCase()}
-      </p>
-      <h2 className="mt-1 font-display text-2xl font-extrabold leading-tight">
-        {hi}, {profile.name}{profile.id !== "andres" ? "!" : "."}
-      </h2>
-      <p className="mt-1 text-sm text-muted-foreground">{profile.tagline}.</p>
-    </section>
-  );
-}
-
-/* ---------- Mateo: estudiante ---------- */
-
-function MateoView() {
-  return (
-    <>
-      <section className="px-5">
-        <div className="rounded-2xl border border-nature/30 bg-nature/10 p-4">
-          <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-nature text-nature-foreground">
-              <Tag className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-foreground">3 promos activas para ti</p>
-              <p className="truncate text-xs text-muted-foreground">Hasta 45% off en buses y hostales esta semana</p>
-            </div>
-            <span className="shrink-0 rounded-full bg-nature px-2 py-1 text-[10px] font-bold text-nature-foreground">-45%</span>
-          </div>
-        </div>
-      </section>
-
-      <Section title="Aventura y playa" subtitle="Lo más barato cerca de ti">
-        <HScroll>
-          <DestCard img={montanita} title="Montañita" tag="Playa · Surf" price="$32" nights="2 noches" badge="Promo" />
-          <DestCard img={quilotoa} title="Quilotoa" tag="Aventura · Sierra" price="$48" nights="2 noches" />
-          <DestCard img={banos}    title="Baños"    tag="Aventura · Cascadas" price="$55" nights="3 noches" badge="Top estudiantes" />
-        </HScroll>
-      </Section>
-
-      <Section title="Viaja en grupo, paga menos" subtitle="Splits automáticos con tus panas">
-        <div className="px-5 space-y-3">
-          <GroupOption title="Bus colectivo · Guayaquil → Montañita" people={6} pricePer="$6" total="$36" icon={Bus} />
-          <GroupOption title="Hostal compartido · 4 personas" people={4} pricePer="$9/n" total="$36/n" icon={Hotel} />
-          <GroupOption title="Tour de surf grupal" people={5} pricePer="$15" total="$75" icon={Waves} />
-        </div>
-      </Section>
-    </>
-  );
-}
-
-function GroupOption({ title, people, pricePer, total, icon: Icon }: { title: string; people: number; pricePer: string; total: string; icon: typeof Bus }) {
-  return (
-    <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card p-3">
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-nature/10 text-nature">
-        <Icon className="h-5 w-5" />
-      </span>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold">{title}</p>
-        <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
-          <Users className="h-3 w-3" /> {people} personas · {pricePer} c/u
-        </p>
-      </div>
-      <div className="shrink-0 text-right">
-        <p className="text-sm font-extrabold text-nature">{total}</p>
-        <p className="text-[10px] text-muted-foreground">total grupo</p>
-      </div>
-    </div>
-  );
-}
-
-/* ---------- Andrés: negocios ---------- */
-
-function AndresView() {
-  return (
-    <>
-      <Section title="Reserva rápida" subtitle="Tu próxima reunión, lista en 1 toque">
-        <div className="grid grid-cols-2 gap-3 px-5">
-          <QuickAction icon={Plane}           label="Vuelo UIO → GYE" sub="Hoy 7:00 pm" />
-          <QuickAction icon={Car}             label="Taxi ejecutivo"  sub="Aeropuerto → Hotel" />
-          <QuickAction icon={Building2}       label="Hotel 4★"        sub="Centro de negocios" />
-          <QuickAction icon={UtensilsCrossed} label="Restaurante"     sub="Sala privada · 4 pax" />
-        </div>
-      </Section>
-
-      <Section title="Hoteles ejecutivos" subtitle="Guayaquil · Quito · Cuenca">
-        <HScroll>
-          <DestCard img={hotelExec} title="Hilton Colón Quito"     tag="Ejecutivo · 4★" price="$129" nights="por noche" badge="Free WiFi" />
-          <DestCard img={quito}     title="Marriott Guayaquil"     tag="Business · 5★" price="$165" nights="por noche" />
-          <DestCard img={banos}     title="Oro Verde Cuenca"       tag="Ejecutivo · 4★" price="$118" nights="por noche" badge="Sala reuniones" />
-        </HScroll>
-      </Section>
-
-      <Section title="Tu agenda de hoy" subtitle="Quito · Mié 24 oct">
-        <div className="px-5 space-y-2">
-          <AgendaItem time="09:30" title="Reunión cliente — Petroamazonas" place="Av. Naciones Unidas" />
-          <AgendaItem time="13:00" title="Almuerzo · Carmine" place="Cumbayá · mesa privada" />
-          <AgendaItem time="18:40" title="Vuelo a Guayaquil" place="LATAM LA1417" />
-        </div>
-      </Section>
-    </>
-  );
-}
-
-function QuickAction({ icon: Icon, label, sub }: { icon: typeof Plane; label: string; sub: string }) {
-  return (
-    <button className="group flex flex-col items-start gap-2 rounded-2xl border border-border bg-card p-4 text-left transition hover:border-primary/40 hover:shadow-soft">
-      <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
-        <Icon className="h-5 w-5" />
-      </span>
-      <span className="text-sm font-semibold leading-tight">{label}</span>
-      <span className="text-[11px] text-muted-foreground">{sub}</span>
-      <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-primary">
-        Reservar <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
-      </span>
-    </button>
-  );
-}
-
-function AgendaItem({ time, title, place }: { time: string; title: string; place: string }) {
-  return (
-    <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card p-3">
-      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground font-display text-xs font-bold">
-        {time}
-      </span>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold">{title}</p>
-        <p className="truncate text-xs text-muted-foreground">{place}</p>
-      </div>
-      <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
-    </div>
-  );
-}
-
-/* ---------- María: familiar ---------- */
-
-function MariaView() {
-  return (
-    <>
-      <section className="px-5">
-        <div className="grid grid-cols-2 gap-3">
-          <Stat icon={Wallet} label="Presupuesto" value="$1.200" sub="4 personas" />
-          <Stat icon={Shield} label="Seguridad"   value="Alta"   sub="Destinos verificados" />
-        </div>
-      </section>
-
-      <Section title="Destinos familiares" subtitle="Aptos para niños · vacaciones escolares">
-        <HScroll>
-          <DestCard img={galapagos} title="Galápagos"   tag="5 días · Familia" price="$1.450" nights="4 noches" badge="Niños +6" />
-          <DestCard img={banos}     title="Baños"       tag="3 días · Aventura suave" price="$680" nights="2 noches" badge="Niños +4" />
-          <DestCard img={quilotoa}  title="Quilotoa"    tag="2 días · Naturaleza" price="$520" nights="1 noche" />
-        </HScroll>
-      </Section>
-
-      <Section title="Itinerario sugerido" subtitle="Baños · Vacaciones de octubre">
-        <div className="px-5 space-y-2">
-          <ItineraryDay day="Día 1" title="Llegada y Pailón del Diablo" detail="Caminata fácil · apto +5 años" icon={Mountain} />
-          <ItineraryDay day="Día 2" title="Casa del Árbol y termas"   detail="Atracciones familiares · descanso" icon={Baby} />
-          <ItineraryDay day="Día 3" title="Ruta de las cascadas"      detail="Tour en chiva · 4 horas"           icon={Compass} />
-        </div>
-      </Section>
-    </>
-  );
-}
-
-function Stat({ icon: Icon, label, value, sub }: { icon: typeof Wallet; label: string; value: string; sub: string }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-        <Icon className="h-4 w-4 text-sun-foreground" /> {label}
-      </div>
-      <p className="mt-1 font-display text-xl font-extrabold">{value}</p>
-      <p className="text-[11px] text-muted-foreground">{sub}</p>
-    </div>
-  );
-}
-
-function ItineraryDay({ day, title, detail, icon: Icon }: { day: string; title: string; detail: string; icon: typeof Mountain }) {
-  return (
-    <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-2xl border border-border bg-card p-3">
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-sun/30 text-sun-foreground">
-        <Icon className="h-5 w-5" />
-      </span>
-      <div className="min-w-0">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-sun-foreground/80">{day}</p>
-        <p className="truncate text-sm font-semibold">{title}</p>
-        <p className="truncate text-xs text-muted-foreground">{detail}</p>
-      </div>
-    </div>
-  );
-}
-
-/* ---------- Shared blocks ---------- */
-
-function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-3">
-      <header className="px-5">
-        <h3 className="font-display text-lg font-extrabold leading-tight">{title}</h3>
-        {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
-      </header>
-      {children}
-    </section>
-  );
-}
-
-function HScroll({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="no-scrollbar -mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1">
-      {children}
-    </div>
-  );
-}
-
-function DestCard({ img, title, tag, price, nights, badge }: { img: string; title: string; tag: string; price: string; nights: string; badge?: string }) {
-  return (
-    <article className="relative w-[230px] shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
-      <div className="relative h-32 w-full overflow-hidden">
-        <img src={img} alt={title} loading="lazy" className="h-full w-full object-cover" />
-        {badge && (
-          <span className="absolute left-2 top-2 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-bold text-primary">
-            {badge}
-          </span>
-        )}
-      </div>
-      <div className="p-3">
-        <p className="truncate font-display text-sm font-extrabold">{title}</p>
-        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{tag}</p>
-        <div className="mt-2 flex items-baseline justify-between">
-          <span className="font-display text-base font-extrabold text-primary">{price}</span>
-          <span className="text-[10px] text-muted-foreground">{nights}</span>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-/* ---------- Comparador ---------- */
-
-type CompareItem = { name: string; meta: string; price: string; rating: number; tag?: string };
-
-function Compare({ profile }: { profile: Profile }) {
-  const [tab, setTab] = useState<"stay" | "transport">("stay");
-
-  const data: Record<ProfileId, { stay: CompareItem[]; transport: CompareItem[] }> = useMemo(() => ({
-    mateo: {
-      stay: [
-        { name: "Hostal Kamala",   meta: "Montañita · compartido",  price: "$9",  rating: 4.4, tag: "Más barato" },
-        { name: "Casa del Sol",    meta: "Olón · privado",          price: "$22", rating: 4.6 },
-      ],
-      transport: [
-        { name: "CLP Buses",       meta: "GYE → Montañita · 3h",    price: "$6",  rating: 4.2, tag: "Económico" },
-        { name: "Van compartida",  meta: "Salida 7am",              price: "$12", rating: 4.7 },
-      ],
-    },
-    andres: {
-      stay: [
-        { name: "Hilton Colón",    meta: "Quito · ejecutivo",       price: "$129", rating: 4.7, tag: "Top business" },
-        { name: "Wyndham",         meta: "GYE · centro",            price: "$118", rating: 4.5 },
-      ],
-      transport: [
-        { name: "Uber Black",      meta: "Aeropuerto → Hotel",      price: "$22", rating: 4.9, tag: "Más rápido" },
-        { name: "LATAM Vuelo",     meta: "UIO → GYE · 50 min",      price: "$89", rating: 4.6 },
-      ],
-    },
-    maria: {
-      stay: [
-        { name: "Hostería Surillal", meta: "Baños · familiar",      price: "$95", rating: 4.8, tag: "Recomendado" },
-        { name: "Hotel Sangay",      meta: "Habitación cuádruple",  price: "$78", rating: 4.5 },
-      ],
-      transport: [
-        { name: "Van privada",     meta: "Quito → Baños · puerta a puerta", price: "$120", rating: 4.9, tag: "Más seguro" },
-        { name: "Bus turístico",   meta: "Salidas diarias",         price: "$8",  rating: 4.3 },
-      ],
-    },
-  }), []);
-
-  const items = data[profile.id][tab];
-
-  return (
-    <Section title="Compara y elige" subtitle="Hospedaje y transporte lado a lado">
-      <div className="px-5">
-        <div className="inline-flex rounded-full bg-muted p-1">
-          <TabBtn active={tab === "stay"}      onClick={() => setTab("stay")}      icon={Hotel} label="Hospedaje" />
-          <TabBtn active={tab === "transport"} onClick={() => setTab("transport")} icon={Car}   label="Transporte" />
-        </div>
-
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          {items.map((it, i) => (
-            <div key={it.name} className={`relative rounded-2xl border p-3 ${i === 0 ? "border-primary/40 bg-primary/5" : "border-border bg-card"}`}>
-              {it.tag && (
-                <span className="absolute -top-2 left-3 rounded-full bg-gradient-brand px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-foreground">
-                  {it.tag}
+              <div className={cn("mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br text-xl text-white", p.accent)}>
+                {p.emoji}
+              </div>
+              <p className="font-display text-base font-bold">{p.name}</p>
+              <p className="text-xs text-muted-foreground">{p.role}</p>
+              <p className="mt-2 text-xs font-medium text-primary">{p.budget}</p>
+              {isActive && (
+                <span className="absolute right-3 top-3 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                  Activo
                 </span>
               )}
-              <p className="truncate text-sm font-bold">{it.name}</p>
-              <p className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">{it.meta}</p>
-              <div className="mt-3 flex items-center justify-between">
-                <span className="font-display text-base font-extrabold text-primary">{it.price}</span>
-                <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-sun-foreground">
-                  <Star className="h-3 w-3 fill-current" /> {it.rating}
-                </span>
-              </div>
-              <button className="mt-3 w-full rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground">
-                Elegir
-              </button>
-            </div>
-          ))}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Hero ---------------- */
+
+function Hero({ profile }: { profile: Profile }) {
+  return (
+    <Card className="overflow-hidden border-0 bg-gradient-brand text-white shadow-float">
+      <div className="p-5 lg:p-8">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-white/80">
+          <Sparkles className="h-3.5 w-3.5" /> Recomendación IA
+        </div>
+        <h1 className="mt-2 font-display text-2xl font-bold leading-tight lg:text-3xl">
+          Hola {profile.name}, {profile.tagline.toLowerCase()}.
+        </h1>
+        <p className="mt-1 text-sm text-white/85">
+          Construimos tu itinerario en Ecuador según presupuesto, intereses y duración.
+        </p>
+
+        <div className="mt-4 grid grid-cols-3 gap-2 lg:max-w-md">
+          <Stat icon={Wallet} label="Presupuesto" value={profile.budget.split(" ")[0]} />
+          <Stat icon={CalendarDays} label="Duración" value={profile.budget.split("/")[1]?.trim() ?? "—"} />
+          <Stat icon={Heart} label="Match IA" value="96%" />
+        </div>
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Button className="rounded-full bg-white text-primary hover:bg-white/90">
+            <Plane className="h-4 w-4" /> Generar itinerario
+          </Button>
+          <Button variant="ghost" className="rounded-full text-white hover:bg-white/15">
+            Ver opciones <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
-    </Section>
+    </Card>
   );
 }
 
-function TabBtn({ active, onClick, icon: Icon, label }: { active: boolean; onClick: () => void; icon: typeof Hotel; label: string }) {
+function Stat({ icon: Icon, label, value }: { icon: typeof Wallet; label: string; value: string }) {
   return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${active ? "bg-background text-primary shadow-soft" : "text-muted-foreground"}`}
-    >
-      <Icon className="h-3.5 w-3.5" /> {label}
-    </button>
+    <div className="rounded-xl bg-white/15 p-3 backdrop-blur">
+      <Icon className="h-4 w-4 text-white/80" />
+      <p className="mt-1 text-[11px] text-white/75">{label}</p>
+      <p className="font-display text-sm font-bold">{value}</p>
+    </div>
   );
 }
 
-/* ---------- Reviews ---------- */
+/* ---------------- Smart suggestions ---------------- */
 
-const REVIEWS: Record<ProfileId, { name: string; place: string; text: string; rating: number }[]> = {
+function SmartSuggestions({ profile }: { profile: Profile }) {
+  const items =
+    profile.id === "mateo"
+      ? [
+          { icon: Backpack, label: "Hostels < $20" },
+          { icon: Users, label: "Grupos para dividir" },
+          { icon: TrendingUp, label: "Rutas trending" },
+        ]
+      : profile.id === "andres"
+      ? [
+          { icon: Plane, label: "Vuelo UIO-GYE" },
+          { icon: Car, label: "Taxi ejecutivo" },
+          { icon: Briefcase, label: "Salas reunión" },
+        ]
+      : [
+          { icon: Shield, label: "Destinos seguros" },
+          { icon: Users, label: "Para niños" },
+          { icon: Hotel, label: "Hoteles familiares" },
+        ];
+
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {items.map((it) => (
+        <button
+          key={it.label}
+          className="flex flex-col items-center gap-2 rounded-2xl bg-white p-3 text-center shadow-sm transition hover:shadow-soft"
+        >
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <it.icon className="h-4 w-4" />
+          </div>
+          <span className="text-xs font-medium">{it.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ---------------- Destinations rail ---------------- */
+
+function DestinationsRail({ profileId }: { profileId: ProfileId }) {
+  const items = DESTINATIONS[profileId];
+  return (
+    <section>
+      <SectionHeading title="Destinos para ti" subtitle="Curado por IA · actualizado hoy" />
+      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 no-scrollbar lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-4 lg:overflow-visible lg:px-0">
+        {items.map((d) => (
+          <Card
+            key={d.title}
+            className="w-[230px] shrink-0 overflow-hidden border-0 shadow-soft transition hover:-translate-y-0.5 lg:w-auto"
+          >
+            <div className="relative h-32 w-full overflow-hidden">
+              <img src={d.image} alt={d.title} className="h-full w-full object-cover" />
+              <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur">
+                {d.tag}
+              </span>
+              <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold">
+                <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {d.rating}
+              </span>
+            </div>
+            <div className="p-3">
+              <p className="font-display text-sm font-bold">{d.title}</p>
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3" /> {d.location}
+              </p>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="font-display text-sm font-bold text-primary">{d.price}</span>
+                <Button size="sm" variant="ghost" className="h-7 rounded-full px-2 text-xs">
+                  Ver <ChevronRight className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- Itinerary ---------------- */
+
+const ITINERARY: Record<ProfileId, { day: string; title: string; items: string[] }[]> = {
   mateo: [
-    { name: "Sofía P.", place: "Montañita",     rating: 5, text: "Reservé el bus y el hostal en 2 minutos. Más barato que ir por mi cuenta." },
-    { name: "Diego R.", place: "Baños",         rating: 5, text: "El split del grupo funcionó perfecto. Volveríamos otra vez." },
+    { day: "Día 1", title: "Quito → Latacunga", items: ["Bus $3", "Hostel Selina $14", "Cena callejera $5"] },
+    { day: "Día 2", title: "Quilotoa Loop", items: ["Trekking guiado $12", "Almuerzo comunitario $4", "Refugio $10"] },
   ],
   andres: [
-    { name: "Carla M.", place: "Hilton Quito",  rating: 5, text: "Check-in express y sala de reuniones lista. Salvé mi día." },
-    { name: "Luis O.",  place: "Guayaquil",     rating: 4, text: "Reserva rápida de taxi ejecutivo, llegó en 6 minutos." },
+    { day: "Día 1", title: "Quito · Reunión cliente", items: ["Vuelo 07:00", "JW Marriott check-in", "Reunión 11:00 PwC"] },
+    { day: "Día 2", title: "Guayaquil · Cierre deal", items: ["LATAM 09:15", "Wyndham coworking", "Cena Casa Julian"] },
   ],
   maria: [
-    { name: "Andrea V.", place: "Baños",        rating: 5, text: "Itinerario seguro para mis hijos (4 y 8). Recomiendo 100%." },
-    { name: "Paola E.",  place: "Galápagos",    rating: 5, text: "Todo verificado. La asistencia respondió en segundos." },
+    { day: "Día 1", title: "Quito histórico", items: ["Tour bus turístico", "TelefériQo (apto niños)", "Cena Hacienda Rumiloma"] },
+    { day: "Día 2", title: "Mindo aventuras", items: ["Mariposario 9:00", "Tarabita familiar", "Hotel Mashpi check-in"] },
   ],
 };
 
-function Reviews({ profile }: { profile: Profile }) {
-  const list = REVIEWS[profile.id];
+function Itinerary({ profileId }: { profileId: ProfileId }) {
+  const days = ITINERARY[profileId];
   return (
-    <Section title="La comunidad confía" subtitle="Reseñas de viajeros como tú">
-      <div className="px-5 space-y-3">
-        {list.map(r => (
-          <article key={r.name} className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-nature text-nature-foreground font-bold">
-                {r.name[0]}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-bold">{r.name}</p>
-                <p className="truncate text-[11px] text-muted-foreground">
-                  <MapPin className="mr-0.5 inline h-3 w-3" />{r.place}
-                </p>
+    <section>
+      <SectionHeading title="Tu itinerario inteligente" subtitle="Editable · sincronizado con calendario" />
+      <div className="space-y-3">
+        {days.map((d) => (
+          <Card key={d.day} className="border-0 p-4 shadow-soft">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-primary">{d.day}</p>
+                <p className="font-display text-base font-bold">{d.title}</p>
               </div>
-              <div className="flex shrink-0 items-center gap-0.5 text-sun-foreground">
-                {Array.from({ length: r.rating }).map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-current" />)}
-              </div>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
             </div>
-            <p className="mt-2 text-sm leading-relaxed text-foreground/85">
-              <Quote className="mr-1 inline h-3.5 w-3.5 -translate-y-0.5 text-primary/40" />
-              {r.text}
-            </p>
-          </article>
+            <ul className="mt-3 space-y-2">
+              {d.items.map((it) => (
+                <li key={it} className="flex items-center gap-2 text-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  {it}
+                </li>
+              ))}
+            </ul>
+          </Card>
         ))}
-        <div className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
-          <Shield className="h-3 w-3 text-nature" /> 12.480 reseñas verificadas
-        </div>
       </div>
-    </Section>
+    </section>
   );
 }
 
-/* ---------- FAB + bottom nav ---------- */
+/* ---------------- Comparator ---------------- */
 
-function AssistantFab() {
-  const [open, setOpen] = useState(false);
+function Comparator({ profileId }: { profileId: ProfileId }) {
+  const [tab, setTab] = useState<"stay" | "transport">("stay");
+  const items = tab === "stay" ? STAY[profileId] : TRANSPORT[profileId];
+
   return (
-    <>
-      {open && (
-        <div className="fixed inset-0 z-40 bg-foreground/30" onClick={() => setOpen(false)}>
-          <div className="fixed bottom-28 right-4 left-4 max-w-md lg:left-auto lg:right-8 lg:bottom-24 rounded-3xl bg-card p-4 shadow-float" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-brand text-primary-foreground">
-                <Sparkles className="h-5 w-5" />
+    <section>
+      <div className="mb-3 flex items-end justify-between">
+        <div>
+          <h3 className="font-display text-base font-bold">Comparador visual</h3>
+          <p className="text-xs text-muted-foreground">Decide en segundos</p>
+        </div>
+        <div className="flex rounded-full bg-muted p-1 text-xs">
+          {(["stay", "transport"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                "rounded-full px-3 py-1 font-medium transition",
+                tab === t ? "bg-white text-foreground shadow-sm" : "text-muted-foreground",
+              )}
+            >
+              {t === "stay" ? "Hospedaje" : "Transporte"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-2">
+        {items.map((it) => (
+          <Card key={it.name} className="border-0 p-4 shadow-soft">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  {tab === "stay" ? <Hotel className="h-4 w-4" /> : <Car className="h-4 w-4" />}
+                </div>
+                <div>
+                  <p className="font-display text-sm font-bold">{it.name}</p>
+                  <p className="text-xs text-muted-foreground">{it.meta}</p>
+                </div>
+              </div>
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                {it.badge}
               </span>
-              <div>
-                <p className="text-sm font-bold">Asistente SmartTrip</p>
-                <p className="text-[11px] text-muted-foreground">En línea · responde al instante</p>
+            </div>
+            <div className="mt-3 flex items-center justify-between">
+              <div className="flex items-center gap-1 text-xs">
+                <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                <span className="font-medium">{it.rating}</span>
+              </div>
+              <div className="text-right">
+                <p className="font-display text-lg font-bold text-primary">{it.price}</p>
+                <Button size="sm" className="mt-1 h-7 rounded-full px-3 text-xs">Reservar</Button>
               </div>
             </div>
-            <div className="mt-3 space-y-2 text-sm">
-              <div className="rounded-2xl rounded-tl-sm bg-muted px-3 py-2">¡Hola! ¿Te ayudo a armar tu viaje, comparar precios o resolver una duda?</div>
-              <div className="ml-auto w-fit max-w-[80%] rounded-2xl rounded-tr-sm bg-primary px-3 py-2 text-primary-foreground">¿Cuál es el mejor día para ir a Quilotoa?</div>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- Community Reviews ---------------- */
+
+function CommunityReviews({ profileId }: { profileId: ProfileId }) {
+  const reviews = REVIEWS[profileId];
+  return (
+    <section>
+      <SectionHeading title="La comunidad confía en SmartTrip" subtitle="+12.400 viajeros activos en Ecuador" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {reviews.map((r) => (
+          <Card key={r.name} className="border-0 p-4 shadow-soft">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-nature text-sm font-bold text-white">
+                {r.name[0]}
+              </div>
+              <div>
+                <p className="text-sm font-semibold">{r.name}</p>
+                <p className="text-[11px] text-muted-foreground">{r.role}</p>
+              </div>
+              <div className="ml-auto flex">
+                {Array.from({ length: r.stars }).map((_, i) => (
+                  <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
+                ))}
+              </div>
             </div>
-            <div className="mt-3 flex gap-2">
-              <input
-                placeholder="Escribe tu pregunta…"
-                className="flex-1 rounded-full border border-border bg-background px-4 py-2 text-sm outline-none focus:border-primary"
-              />
-              <button className="rounded-full bg-primary px-4 text-sm font-bold text-primary-foreground">Enviar</button>
+            <p className="mt-3 text-sm text-foreground/80">"{r.text}"</p>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ---------------- Bottom Nav (mobile) ---------------- */
+
+function BottomNav() {
+  const items = [
+    { icon: Home, label: "Inicio", active: true },
+    { icon: Compass, label: "Explorar" },
+    { icon: CalendarDays, label: "Viajes" },
+    { icon: Heart, label: "Favoritos" },
+  ];
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t bg-white/95 px-4 py-2 backdrop-blur lg:hidden">
+      <div className="mx-auto flex max-w-[460px] items-center justify-between">
+        {items.map((it) => (
+          <button
+            key={it.label}
+            className={cn(
+              "flex flex-1 flex-col items-center gap-0.5 rounded-lg py-1.5 text-xs transition",
+              it.active ? "text-primary" : "text-muted-foreground",
+            )}
+          >
+            <it.icon className="h-5 w-5" />
+            {it.label}
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
+/* ---------------- Floating Assistant ---------------- */
+
+function AssistantFab({
+  open,
+  setOpen,
+  profile,
+}: {
+  open: boolean;
+  setOpen: (v: boolean) => void;
+  profile: Profile;
+}) {
+  return (
+    <>
+      <button
+        onClick={() => setOpen(!open)}
+        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-brand text-white shadow-float transition hover:scale-105 lg:bottom-8 lg:right-8"
+        aria-label="Asistente virtual"
+      >
+        {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+      </button>
+
+      {open && (
+        <div className="fixed bottom-40 right-4 z-40 w-[320px] overflow-hidden rounded-2xl border bg-white shadow-float lg:bottom-28 lg:right-8">
+          <div className="bg-gradient-brand p-4 text-white">
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              <Sparkles className="h-4 w-4" /> SmartTrip Assistant
+            </p>
+            <p className="text-xs text-white/80">Hola {profile.name}, ¿en qué te ayudo?</p>
+          </div>
+          <div className="space-y-2 p-4 text-sm">
+            <div className="rounded-2xl rounded-tl-sm bg-muted p-3 text-foreground/80">
+              Puedo ajustar tu itinerario, comparar precios o reservar. ¿Qué necesitas?
             </div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              <Chip>Ver opciones más baratas</Chip>
+              <Chip>Reservar transporte</Chip>
+              <Chip>Hablar con humano</Chip>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 border-t p-3">
+            <Input placeholder="Escribe tu pregunta…" className="h-9 rounded-full" />
+            <Button size="icon" variant="ghost" className="rounded-full">
+              <Mic className="h-4 w-4" />
+            </Button>
+            <Button size="icon" className="rounded-full">
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       )}
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="fixed bottom-24 right-4 lg:bottom-8 lg:right-8 z-50 grid h-14 w-14 place-items-center rounded-full bg-gradient-brand text-primary-foreground shadow-float transition active:scale-95"
-        aria-label="Asistente virtual"
-      >
-        <MessageCircle className="h-6 w-6" />
-        <span className="absolute -right-0.5 -top-0.5 grid h-5 w-5 place-items-center rounded-full bg-sun text-[10px] font-bold text-sun-foreground">
-          <Zap className="h-3 w-3" />
-        </span>
-      </button>
     </>
   );
 }
 
-function BottomNav() {
-  const items = [
-    { icon: Compass,       label: "Explorar", active: true },
-    { icon: Search,        label: "Buscar" },
-    { icon: Hotel,         label: "Reservas" },
-    { icon: GraduationCap, label: "Perfil" },
-  ];
+function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 backdrop-blur mx-auto max-w-[440px] lg:hidden">
-      <ul className="grid grid-cols-4">
-        {items.map(it => (
-          <li key={it.label}>
-            <button className={`flex w-full flex-col items-center gap-1 py-3 text-[10px] font-semibold ${it.active ? "text-primary" : "text-muted-foreground"}`}>
-              <it.icon className="h-5 w-5" />
-              {it.label}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <button className="rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-primary transition hover:bg-primary/10">
+      {children}
+    </button>
+  );
+}
+
+/* ---------------- Misc ---------------- */
+
+function SectionHeading({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="mb-3 flex items-end justify-between">
+      <div>
+        <h3 className="font-display text-base font-bold lg:text-lg">{title}</h3>
+        {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+      </div>
+      <button className="text-xs font-medium text-primary">Ver todo</button>
+    </div>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="pb-6 pt-4 text-center text-[11px] text-muted-foreground">
+      © {new Date().getFullYear()} SmartTrip · Ecuador · Hecho con 💙
+    </footer>
   );
 }
