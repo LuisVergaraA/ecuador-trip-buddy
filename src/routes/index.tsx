@@ -34,7 +34,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-import logo from "@/assets/smarttrip-logo.png";
+import logo from "@/assets/logo.png";
 import quito from "@/assets/quito.jpg";
 import galapagos from "@/assets/galapagos.jpg";
 import banos from "@/assets/banos.jpg";
